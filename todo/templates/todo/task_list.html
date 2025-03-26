@@ -1,98 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'todo/style.css' %}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task List</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
             color: #333;
+            line-height: 1.6;
         }
-        h1 {
-            text-align: center;
-            color: #4CAF50;
+        h1, h2 {
+            color: #444;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
         }
-        form {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+            color: #555;
+        }
+        tr:hover {
+            background-color: #fafafa;
+        }
+        .actions {
             display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        input[type="text"] {
-            padding: 10px;
-            width: 250px;
-            border: 2px solid #ccc;
-            border-radius: 5px;
-            margin-right: 10px;
-            font-size: 16px;
+            gap: 10px;
         }
         button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
+            padding: 6px 12px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            transition: background 0.2s ease;
+            font-size: 14px;
+            color: #fff;
+            font-weight: 500;
         }
-        button:hover {
+        .complete-btn {
+            background-color: #4CAF50;
+        }
+        .complete-btn:hover {
             background-color: #45a049;
         }
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin-top: 20px;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
+        .delete-btn {
+            background-color: #f44336;
         }
-        li {
-            background-color: #ffffff;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+        .delete-btn:hover {
+            background-color: #d32f2f;
         }
         a {
-            color: #d9534f;
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
             text-decoration: none;
-            font-weight: bold;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+            font-size: 16px;
         }
         a:hover {
-            text-decoration: underline;
+            background-color: #45a049;
         }
-        .no-tasks {
-            text-align: center;
-            color: #888;
+        .logout-btn {
+            padding: 8px 16px;
+            background-color: #f44336;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .logout-btn:hover {
+            background-color: #d32f2f;
         }
     </style>
 </head>
 <body>
-    <h1>My To-Do List</h1>
 
-    <form method="POST" action="{% url 'add_task' %}">
-        {% csrf_token %}
-        <input type="text" name="title" placeholder="New Task" required>
-        <button type="submit">Add Task</button>
-    </form>
+<h1>Task List</h1>
 
-    <ul>
-        {% for task in tasks %}
-            <li>
-                {{ task.title }}
-                <a href="{% url 'delete_task' task.id %}">Delete</a>
-            </li>
-        {% empty %}
-            <li class="no-tasks">No tasks available.</li>
-        {% endfor %}
-    </ul>
+<!-- Logout Button -->
+<a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+
+<!-- Active Tasks Table -->
+<h2>Active Tasks</h2>
+<table>
+    <tr>
+        <th>Task</th>
+        <th style="width: 200px;">Actions</th>
+    </tr>
+    {% for task in active_tasks %}
+    <tr>
+        <td>{{ task.title }}</td>
+        <td>
+            <div class="actions">
+                <form method="POST" action="{% url 'toggle_task' task.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="complete-btn">Mark as Complete</button>
+                </form>
+                <form method="POST" action="{% url 'delete_task' task.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="delete-btn">Delete</button>
+                </form>
+            </div>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="2" style="text-align: center; color: #999;">No active tasks</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<!-- Completed Tasks Table -->
+<h2>Completed Tasks</h2>
+<table>
+    <tr>
+        <th>Task</th>
+        <th style="width: 200px;">Actions</th>
+    </tr>
+    {% for task in completed_tasks %}
+    <tr>
+        <td>{{ task.title }}</td>
+        <td>
+            <div class="actions">
+                <form method="POST" action="{% url 'toggle_task' task.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="complete-btn" style="background-color: #2196F3;">
+                        Mark as Incomplete
+                    </button>
+                </form>
+                <form method="POST" action="{% url 'delete_task' task.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="delete-btn">Delete</button>
+                </form>
+            </div>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="2" style="text-align: center; color: #999;">No completed tasks</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<a href="{% url 'add_task' %}">Add New Task</a>
+
 </body>
 </html>
